@@ -1,0 +1,1 @@
+const { lazy } = require("react");

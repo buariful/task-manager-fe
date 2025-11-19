@@ -1,0 +1,18 @@
+import React, { memo } from "react";
+import metadataJSON from "Utils/metadata.json";
+
+function PublicRoute({ element, path }) {
+  console.log("PublicRoute e aise");
+  React.useEffect(() => {
+    const metadata = metadataJSON[path ?? "/"];
+    if (!(metadata == null)) {
+      document.title = metadata.title;
+    } else {
+      document.title = "Neoteric";
+    }
+  }, [path]);
+
+  return <>{element}</>;
+}
+
+export default memo(PublicRoute);

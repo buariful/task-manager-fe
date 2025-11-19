@@ -1,0 +1,276 @@
+@keyframes animate {
+  0% {
+    opacity: 0;
+    font-size: 2vw;
+  }
+  10% {
+    opacity: 1;
+    font-size: 10vw;
+    content: "THE";
+  }
+  20% {
+    content: "";
+    opacity: 0;
+    font-size: 2vw;
+  }
+  30% {
+    opacity: 1;
+    font-size: 10vw;
+    content: "WAIT";
+  }
+
+  40% {
+    content: "";
+    opacity: 0;
+    font-size: 2vw;
+  }
+  50% {
+    opacity: 1;
+    font-size: 10vw;
+    content: "IS";
+  }
+
+  60% {
+    content: "";
+    opacity: 0;
+    font-size: 2vw;
+  }
+  70% {
+    opacity: 1;
+    font-size: 10vw;
+    content: "OVER";
+  }
+
+  72% {
+    opacity: 0;
+  }
+  74% {
+    opacity: 1;
+    font-size: 10vw;
+    content: "T";
+  }
+  75% {
+    opacity: 1;
+    font-size: 10vw;
+    content: "TH";
+  }
+  76% {
+    opacity: 1;
+    font-size: 10vw;
+    content: "THE";
+  }
+  77% {
+    opacity: 1;
+    font-size: 10vw;
+    content: "THE W";
+  }
+  78% {
+    opacity: 1;
+    font-size: 10vw;
+    content: "THE WA";
+  }
+  79% {
+    opacity: 1;
+    font-size: 10vw;
+    content: "THE WAI";
+  }
+  80% {
+    opacity: 1;
+    font-size: 10vw;
+    content: "THE WAIT";
+  }
+  81% {
+    opacity: 1;
+    font-size: 10vw;
+    content: "THE WAIT I";
+  }
+  82% {
+    opacity: 1;
+    font-size: 10vw;
+    content: "THE WAIT IS";
+  }
+  83% {
+    opacity: 1;
+    font-size: 10vw;
+    content: "THE WAIT IS O";
+  }
+  84% {
+    opacity: 1;
+    font-size: 10vw;
+    content: "THE WAIT IS OV";
+  }
+  85% {
+    opacity: 1;
+    font-size: 10vw;
+    content: "THE WAIT IS OVE";
+  }
+  86% {
+    opacity: 1;
+    font-size: 10vw;
+    content: "THE WAIT IS OVER";
+  }
+  97% {
+    opacity: 1;
+    font-size: 10vw;
+    content: "THE WAIT IS OVER";
+  }
+  100% {
+    opacity: 0;
+    font-size: 10vw;
+    content: "THE WAIT IS OVER";
+  }
+}
+
+/* @keyframes typeAnimate {
+  0% {
+    opacity: 1;
+    content: "T";
+  }
+  2% {
+    opacity: 1;
+    content: "TH";
+  }
+  4% {
+    opacity: 1;
+    content: "THE";
+  }
+  6% {
+    opacity: 1;
+    content: "THE W";
+  }
+  8% {
+    opacity: 1;
+    content: "THE WA";
+  }
+  10% {
+    opacity: 1;
+    content: "THE WAI";
+  }
+  12% {
+    opacity: 1;
+    content: "THE WAIT";
+  }
+  14% {
+    opacity: 1;
+    content: "THE WAIT I";
+  }
+  16% {
+    opacity: 1;
+    content: "THE WAIT IS";
+  }
+  18% {
+    opacity: 1;
+    content: "THE WAIT IS O";
+  }
+  20% {
+    opacity: 1;
+    content: "THE WAIT IS OV";
+  }
+  22% {
+    opacity: 1;
+    content: "THE WAIT IS OVE";
+  }
+  24% {
+    opacity: 1;
+    content: "THE WAIT IS OVER";
+  }
+  26% {
+    opacity: 1;
+    content: "THE WAIT IS OVER";
+  }
+  28% {
+    opacity: 1;
+    content: "THE WAIT IS OVER";
+  }
+  43% {
+    opacity: 1;
+    content: "THE WAIT IS OVER";
+  }
+  100% {
+    opacity: 1;
+    content: "THE WAIT IS OVER";
+  }
+} */
+@keyframes typeAnimate {
+  0% {
+    opacity: 1;
+    content: "T";
+  }
+  1% {
+    opacity: 1;
+    content: "TH";
+  }
+  2% {
+    opacity: 1;
+    content: "THE";
+  }
+  3% {
+    opacity: 1;
+    content: "THE W";
+  }
+  4% {
+    opacity: 1;
+    content: "THE WA";
+  }
+  5% {
+    opacity: 1;
+    content: "THE WAI";
+  }
+  6% {
+    opacity: 1;
+    content: "THE WAIT";
+  }
+  7% {
+    opacity: 1;
+    content: "THE WAIT I";
+  }
+  8% {
+    opacity: 1;
+    content: "THE WAIT IS";
+  }
+  9% {
+    opacity: 1;
+    content: "THE WAIT IS O";
+  }
+  10% {
+    opacity: 1;
+    content: "THE WAIT IS OV";
+  }
+  11% {
+    opacity: 1;
+    content: "THE WAIT IS OVE";
+  }
+  12% {
+    opacity: 1;
+    content: "THE WAIT IS OVER";
+  }
+  13% {
+    opacity: 1;
+    content: "THE WAIT IS OVER";
+  }
+  14% {
+    opacity: 1;
+    content: "THE WAIT IS OVER";
+  }
+  15% {
+    opacity: 1;
+    content: "THE WAIT IS OVER";
+  }
+  100% {
+    opacity: 1;
+    content: "THE WAIT IS OVER";
+  }
+}
+
+.slideText_small::before {
+  content: "";
+  font-size: 2vw;
+  color: white;
+  animation: typeAnimate 5s cubic-bezier(0.06, 0.71, 0.99, 0.66) infinite;
+  /* animation: animate 14s cubic-bezier(0.06, 0.71, 0.99, 0.66) infinite; */
+  /* animation: animate 14s cubic-bezier(0.55, 0.055, 0.675, 0.19) infinite; */
+}
+.slideText {
+  font-size: 7vw;
+  color: white;
+}
