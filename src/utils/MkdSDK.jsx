@@ -121,5 +121,23 @@ export default function MkdSDK() {
     return json;
   };
 
+  this.checkToken = async function () {
+    const result = await fetch(this._baseurl + "/api/auth/check", {
+      method: "get",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: "Bearer " + localStorage.getItem("token"),
+      },
+    });
+    const json = await result.json();
+    if (result.status === 401) {
+      throw new Error(json.message);
+    }
+    if (result.status === 403) {
+      throw new Error(json.message);
+    }
+    return json;
+  };
+
   return this;
 }

@@ -3,7 +3,6 @@ import { Routes, Route } from "react-router-dom";
 import { AuthContext } from "Context/Auth";
 import { GlobalContext } from "Context/Global";
 
-import PrivateRoute from "./PrivateRoutes";
 import PublicRoute from "./PublicRoutes";
 // import {PublicWrapper} from "Components/PublicWrapper";
 import { NotFoundPage } from "Pages/404";
@@ -18,7 +17,6 @@ import { PublicWrapper } from "Components/PublicWrapper";
 import { Spinner } from "Assets/svgs";
 import { SuspenseLoader } from "Components/SuspenseLoader";
 import { SuspensLoader } from "Components/SuspensLoader";
-import { AdministratorAllRoutes } from "./AdministratorRoutes";
 import LoginPage from "../pages/LoginPage";
 import DashboardPage from "../pages/DashboardPage";
 import TeamManagementPage from "../pages/TeamManagementPage";

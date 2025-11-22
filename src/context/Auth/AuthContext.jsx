@@ -1,6 +1,6 @@
 import React, { useReducer, useState } from "react";
 import { Spinner } from "Assets/svgs";
-import { supabase } from "Src/supabase";
+import MkdSDK from "Utils/MkdSDK";
 
 // 🟢 Initial state aligned with user_profile schema
 const initialState = {
@@ -110,6 +110,7 @@ export const tokenExpireError = (dispatch, errorMessage) => {
 const AuthProvider = ({ children }) => {
   const [state, dispatch] = useReducer(reducer, initialState);
   const [loading, setLoading] = useState(true);
+  const sdk = new MkdSDK();
 
   React.useEffect(() => {
     const user = localStorage.getItem("user");
@@ -119,36 +120,20 @@ const AuthProvider = ({ children }) => {
     if (token) {
       (async function () {
         try {
-          ("************* Auth context e hit korse *************");
+          const result = await sdk.checkToken();
           dispatch({
             type: "LOGIN",
-            payload: { user_id: user, token, role },
-          });
-
-          // 🟢 Fetch user profile from Supabase with org join
-          const { data, error } = await supabase
-            .from("user_profile")
-            // .select(
-            //   `email, address, city, state, country, zip, joined_date, expiry_date, logo, login_img, role, organization_id, organization(name)`
-            // )
-            .select(`*, organization(name), roles(name)`)
-            .eq("user_id", user)
-            .single();
-
-          if (error) throw error;
-
-          dispatch({
-            type: "USER_PROFILE",
-            payload: { ...data, role_name: data?.roles?.name },
+            payload: {
+              user_id: result.data.user.id,
+              token,
+              role,
+              email: result.data.user.email,
+            },
           });
         } catch (error) {
           console.error("Auth error:", error.message);
           dispatch({ type: "LOGOUT" });
-          if (role) {
-            window.location.href = "/" + role + "/login";
-          } else {
-            window.location.href = "/";
-          }
+          window.location.href = "/login";
         } finally {
           setLoading(false);
         }

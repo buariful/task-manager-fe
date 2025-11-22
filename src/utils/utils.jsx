@@ -2,15 +2,12 @@ import prettier from "prettier/standalone";
 import parserBabel from "prettier/parser-babel";
 import { saveAs } from "file-saver";
 import All_counties from "./counties.json";
-// import XLSX from "xlsx";
 import * as XLSX from "xlsx";
 import moment from "moment";
-import { supabase } from "Src/supabase";
 import Papa from "papaparse";
 import * as yup from "yup";
 import { jsPDF } from "jspdf";
 import html2canvas from "html2canvas";
-import { BUCKET_NAME } from "./config";
 
 export const downloadCsv = (data, filename = "data.csv") => {
   // Convert the array of objects to CSV text
@@ -476,87 +473,6 @@ export function debounce(func, wait) {
   };
 }
 
-export const uploadFileAndGetUrl = async (file, bucketName = BUCKET_NAME) => {
-  try {
-    if (!file) return null;
-
-    const fileName = `${Date.now()}-${file.name}`;
-
-    const { error: uploadError } = await supabase.storage
-      .from(bucketName)
-      .upload(fileName, file, {
-        cacheControl: "3600",
-        upsert: false,
-      });
-
-    if (uploadError) {
-      console.error("Upload error:", uploadError.message);
-      return null;
-    }
-
-    const { data: publicUrlData } = supabase.storage
-      .from(bucketName)
-      .getPublicUrl(fileName);
-
-    return publicUrlData.publicUrl;
-  } catch (error) {
-    return null;
-  }
-};
-export const uploadFileAndGetNameAndUrl = async (
-  file,
-  bucketName = BUCKET_NAME
-) => {
-  try {
-    if (!file) return null;
-
-    const fileName = `${file.name}-${Date.now()}`;
-
-    const { error: uploadError } = await supabase.storage
-      .from(bucketName)
-      .upload(fileName, file, {
-        cacheControl: "3600",
-        upsert: false,
-      });
-
-    if (uploadError) {
-      console.error("Upload error:", uploadError.message);
-      return null;
-    }
-
-    const { data: publicUrlData } = await supabase.storage
-      .from(bucketName)
-      .getPublicUrl(fileName);
-
-    return { url: publicUrlData.publicUrl, name: fileName };
-  } catch (error) {
-    return null;
-  }
-};
-
-export const deleteFileFromBucket = async (
-  fileName,
-  bucketName = BUCKET_NAME
-) => {
-  try {
-    if (!fileName) return null;
-
-    const { error } = await supabase.storage
-      .from(bucketName)
-      .remove([fileName]); // remove expects an array of file paths
-
-    if (error) {
-      console.error("Delete error:", error.message);
-      return null;
-    }
-
-    return true; // success
-  } catch (err) {
-    console.error("Unexpected error deleting file:", err.message);
-    return null;
-  }
-};
-
 export const permissionNames = {
   LEVEL: "level",
   SKILL: "skill",
@@ -936,49 +852,6 @@ export const participantSchema = yup.object().shape({
   organization_id: yup.number().nullable(),
 });
 
-export const importParticipantsFromCSV = async (file) => {
-  return new Promise((resolve, reject) => {
-    Papa.parse(file, {
-      header: true, // expects headers in CSV
-      skipEmptyLines: true,
-      complete: async (results) => {
-        const validRows = [];
-        const errors = [];
-
-        for (let i = 0; i < results.data.length; i++) {
-          const row = results.data[i];
-
-          try {
-            const validated = await participantSchema.validate(row, {
-              abortEarly: false,
-            });
-            validRows.push(validated);
-          } catch (validationError) {
-            errors.push({
-              row: i + 2, // +2 to account for header and 0-based index
-              errors: validationError.errors,
-            });
-          }
-        }
-
-        if (errors.length > 0) {
-          return reject({ message: "Validation failed", details: errors });
-        }
-
-        // Insert into Supabase
-        const { data, error } = await supabase
-          .from("participant")
-          .insert(validRows);
-
-        if (error) return reject(error);
-
-        resolve(data);
-      },
-      error: (err) => reject(err),
-    });
-  });
-};
-
 export const weekDays = [
   { label: "Sunday", value: "sunday" },
   { label: "Monday", value: "monday" },
@@ -1200,26 +1073,6 @@ export const excelTimeToMoment = (serial) => {
   return moment({ hour: hours, minute: minutes, second: seconds });
 };
 
-export const fetchSinglePermission = async (
-  organization_id,
-  permissionName,
-  roleId
-) => {
-  if (!organization_id || !permissionName || !roleId) return {};
-  try {
-    return await supabase
-      .from("permission")
-      .select("*")
-      .eq("organization_id", organization_id)
-      .eq("name", permissionName)
-      .eq("role_id", roleId)
-      .single();
-  } catch (error) {
-    console.log("fetchPermission->>", error?.message);
-    return {};
-  }
-};
-
 export const reportCardNameOptions = [
   { label: "First name only", value: 1 },
   { label: "First name last initial", value: 2 },
@@ -1237,58 +1090,6 @@ export const defaultColors = {
   "neutral-gray": "#9ca3af",
   "input-bg": "#F2F4F8",
 };
-
-export const getRoleId = async ({ roleName, organizationId, accessType }) => {
-  try {
-    const { data } = await supabase
-      .from("roles")
-      .select("*")
-      .eq("organization_id", organizationId)
-      .ilike("name", `%${roleName}%`);
-
-    if (data?.length) {
-      return data[0]?.id;
-    } else {
-      const { data: newRole } = await supabase
-        .from("roles")
-        .insert([{ name: `${roleName}`, access_type: `${accessType}` }])
-        .select()
-        .single();
-      return newRole?.id;
-    }
-  } catch (error) {
-    console.log("getRoleId->>", error?.message);
-    return null;
-  }
-};
-
-export async function updateUserEmail(userId, newEmail) {
-  try {
-    // Call the Supabase Edge Function
-    const { data, error } = await supabase.functions.invoke(
-      "update-user-email",
-      {
-        body: JSON.stringify({ userId, newEmail }),
-      }
-    );
-
-    if (error) {
-      console.error("Error calling Edge Function:", error.message);
-      return { success: false, error };
-    }
-
-    if (!data.success) {
-      console.error("Edge Function returned an error:", data.error);
-      return { success: false, error: data.error };
-    }
-
-    // Success
-    return { success: true, data: data };
-  } catch (err) {
-    console.error("Unexpected error:", err);
-    return { success: false, error: err };
-  }
-}
 
 export function formatName(firstName, lastName, option) {
   if (!firstName && !lastName) return "";
