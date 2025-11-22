@@ -4,7 +4,7 @@ import { yupResolver } from "@hookform/resolvers/yup";
 import * as yup from "yup";
 import MkdInput from "../components/MkdInput/MkdInput";
 import TaskCard from "../components/TaskCard";
-import { MockDataService } from "../utils/MockDataService";
+import MkdSDK from "../utils/MkdSDK";
 
 const projectSchema = yup
   .object({
@@ -33,6 +33,7 @@ const ProjectManagementPage = () => {
 
   // Warning State
   const [capacityWarning, setCapacityWarning] = useState(null); // { memberName, current, capacity }
+  const sdk = new MkdSDK();
 
   // Project Form
   const {
@@ -58,71 +59,105 @@ const ProjectManagementPage = () => {
 
   const assignedMemberId = watchTask("assignedTo");
 
-  const fetchData = () => {
-    setProjects([...MockDataService.getProjects()]);
-    setTeams([...MockDataService.getTeams()]);
-    setTasks([...MockDataService.getTasks()]);
+  const fetchData = async () => {
+    try {
+      const projectsRes = await sdk.getProjects();
+      if (projectsRes.success) {
+        setProjects(projectsRes.data);
+      }
+      const teamsRes = await sdk.getTeams();
+      if (teamsRes.success) {
+        setTeams(teamsRes.data);
+      }
+    } catch (error) {
+      console.error("Error fetching data:", error);
+    }
+  };
+
+  const fetchTasks = async (projectId) => {
+    try {
+      const tasksRes = await sdk.getTasks(projectId);
+      if (tasksRes.success) {
+        setTasks(tasksRes.data);
+      }
+    } catch (error) {
+      console.error("Error fetching tasks:", error);
+    }
   };
 
   useEffect(() => {
     fetchData();
   }, []);
 
+  useEffect(() => {
+    if (selectedProjectId) {
+      fetchTasks(selectedProjectId);
+    } else {
+      setTasks([]);
+    }
+  }, [selectedProjectId]);
+
   // Check capacity when assignee changes
   useEffect(() => {
     if (assignedMemberId && selectedProjectId) {
-      const project = projects.find((p) => p.id === selectedProjectId);
+      const project = projects.find((p) => p._id === selectedProjectId);
       if (project) {
-        const teamMembers = MockDataService.getTeamMembers(project.teamId);
-        const member = teamMembers.find(
-          (m) => m.id === parseInt(assignedMemberId)
-        );
-        if (member && member.currentTasks >= member.capacity) {
-          setCapacityWarning({
-            memberName: member.name,
-            current: member.currentTasks,
-            capacity: member.capacity,
-          });
-        } else {
-          setCapacityWarning(null);
+        const team = teams.find((t) => t._id === project.teamId);
+        if (team && team.members && Array.isArray(team.members)) {
+          const member = team.members.find((m) => m._id === assignedMemberId);
+          if (member && (member.currentTasks || 0) >= member.capacity) {
+            setCapacityWarning({
+              memberName: member.name,
+              current: member.currentTasks || 0,
+              capacity: member.capacity,
+            });
+          } else {
+            setCapacityWarning(null);
+          }
         }
       }
     } else {
       setCapacityWarning(null);
     }
-  }, [assignedMemberId, selectedProjectId, projects]);
+  }, [assignedMemberId, selectedProjectId, projects, teams]);
 
-  const onAddProject = (data) => {
-    MockDataService.addProject(data.name, parseInt(data.teamId));
-    resetProject();
-    setShowAddProject(false);
-    fetchData();
+  const onAddProject = async (data) => {
+    try {
+      await sdk.createProject(data.name, data.teamId);
+      resetProject();
+      setShowAddProject(false);
+      fetchData();
+    } catch (error) {
+      console.error("Error creating project:", error);
+    }
   };
 
-  const onAddTask = (data) => {
-    // If warning exists and user hasn't confirmed (we can just let them submit for "Assign Anyway" as per requirements)
-    // The requirement says: "Show warning... Options: [Assign Anyway] or [Choose Another]"
-    // Here, clicking submit IS "Assign Anyway". We just show the warning visually.
-
-    MockDataService.addTask({
-      ...data,
-      projectId: selectedProjectId,
-      assignedTo: data.assignedTo ? parseInt(data.assignedTo) : null,
-    });
-    resetTask();
-    setShowAddTask(false);
-    setCapacityWarning(null);
-    fetchData();
-  };
-
-  const getProjectTasks = (projectId) => {
-    return tasks.filter((t) => t.projectId === projectId);
+  const onAddTask = async (data) => {
+    try {
+      await sdk.createTask(
+        data.title,
+        data.description,
+        selectedProjectId,
+        data.assignedTo || null,
+        data.priority,
+        "Pending"
+      );
+      resetTask();
+      setShowAddTask(false);
+      setCapacityWarning(null);
+      fetchTasks(selectedProjectId);
+    } catch (error) {
+      console.error("Error creating task:", error);
+    }
   };
 
   const getProjectTeamMembers = (projectId) => {
-    const project = projects.find((p) => p.id === projectId);
+    const project = projects.find((p) => p._id === projectId);
     if (!project) return [];
-    return MockDataService.getTeamMembers(project.teamId);
+    const team = teams.find((t) => t._id === project.teamId);
+    return team && team.members && Array.isArray(team.members)
+      ? team.members
+      : [];
   };
 
   const autoAssign = () => {
@@ -131,12 +166,12 @@ const ProjectManagementPage = () => {
 
     // Find member with least load
     const sortedMembers = [...members].sort(
-      (a, b) => a.currentTasks - b.currentTasks
+      (a, b) => (a.currentTasks || 0) - (b.currentTasks || 0)
     );
     const bestMember = sortedMembers[0];
 
     if (bestMember) {
-      setTaskValue("assignedTo", bestMember.id.toString());
+      setTaskValue("assignedTo", bestMember._id);
     }
   };
 
@@ -167,7 +202,7 @@ const ProjectManagementPage = () => {
               name="teamId"
               label="Assign Team"
               type="select"
-              options={teams.map((t) => ({ value: t.id, label: t.name }))}
+              options={teams.map((t) => ({ value: t._id, label: t.name }))}
               register={registerProject}
               errors={projectErrors}
             />
@@ -187,10 +222,10 @@ const ProjectManagementPage = () => {
         <div className="lg:col-span-1 space-y-2">
           {projects.map((project) => (
             <div
-              key={project.id}
-              onClick={() => setSelectedProjectId(project.id)}
+              key={project._id}
+              onClick={() => setSelectedProjectId(project._id)}
               className={`p-4 rounded cursor-pointer shadow-sm transition-colors ${
-                selectedProjectId === project.id
+                selectedProjectId === project._id
                   ? "bg-blue-100 border-l-4 border-blue-500"
                   : "bg-white hover:bg-gray-100"
               }`}
@@ -198,7 +233,7 @@ const ProjectManagementPage = () => {
               <h3 className="font-bold text-gray-800">{project.name}</h3>
               <p className="text-xs text-gray-500">
                 Team:{" "}
-                {teams.find((t) => t.id === project.teamId)?.name || "Unknown"}
+                {teams.find((t) => t._id === project.teamId)?.name || "Unknown"}
               </p>
             </div>
           ))}
@@ -213,7 +248,8 @@ const ProjectManagementPage = () => {
             <div>
               <div className="flex justify-between items-center mb-4">
                 <h2 className="text-2xl font-bold text-gray-800">
-                  {projects.find((p) => p.id === selectedProjectId)?.name} Tasks
+                  {projects.find((p) => p._id === selectedProjectId)?.name}{" "}
+                  Tasks
                 </h2>
                 <button
                   onClick={() => setShowAddTask(true)}
@@ -224,14 +260,14 @@ const ProjectManagementPage = () => {
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {getProjectTasks(selectedProjectId).map((task) => (
+                {tasks.map((task) => (
                   <TaskCard
-                    key={task.id}
+                    key={task._id}
                     task={task}
                     teamMembers={getProjectTeamMembers(selectedProjectId)}
                   />
                 ))}
-                {getProjectTasks(selectedProjectId).length === 0 && (
+                {tasks.length === 0 && (
                   <p className="text-gray-500 italic col-span-2 text-center py-10">
                     No tasks in this project.
                   </p>
@@ -288,8 +324,10 @@ const ProjectManagementPage = () => {
                     type="select"
                     options={getProjectTeamMembers(selectedProjectId).map(
                       (m) => ({
-                        value: m.id,
-                        label: `${m.name} (${m.currentTasks}/${m.capacity})`,
+                        value: m._id,
+                        label: `${m.name} (${m.currentTasks || 0}/${
+                          m.capacity
+                        })`,
                       })
                     )}
                     register={registerTask}

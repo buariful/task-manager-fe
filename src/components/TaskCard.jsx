@@ -1,9 +1,14 @@
 import React from "react";
 
 const TaskCard = ({ task, teamMembers, onEdit, onDelete }) => {
-  const assignedMember = teamMembers.find(
-    (m) => m.id === parseInt(task.assignedTo)
-  );
+  let assignedMember = null;
+  if (task.assignedTo && typeof task.assignedTo === "object") {
+    assignedMember = task.assignedTo;
+  } else if (task.assignedTo) {
+    assignedMember = teamMembers.find(
+      (m) => m._id === task.assignedTo || m.id === parseInt(task.assignedTo)
+    );
+  }
 
   const getPriorityColor = (priority) => {
     switch (priority) {

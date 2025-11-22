@@ -48,7 +48,7 @@ const TeamManagementPage = () => {
   const fetchTeams = async () => {
     try {
       const response = await sdk.getTeams();
-      if (!response.error) {
+      if (response.success) {
         setTeams(response.data || []);
       }
     } catch (error) {

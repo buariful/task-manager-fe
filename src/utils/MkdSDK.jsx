@@ -139,5 +139,155 @@ export default function MkdSDK() {
     return json;
   };
 
+  this.createProject = async function (name, teamId) {
+    const result = await fetch(this._baseurl + "/api/project", {
+      method: "post",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: "Bearer " + localStorage.getItem("token"),
+      },
+      body: JSON.stringify({
+        name,
+        teamId,
+      }),
+    });
+    const json = await result.json();
+    if (result.status === 401) {
+      throw new Error(json.message);
+    }
+    if (result.status === 403) {
+      throw new Error(json.message);
+    }
+    return json;
+  };
+
+  this.getProjects = async function () {
+    const result = await fetch(this._baseurl + "/api/project", {
+      method: "get",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: "Bearer " + localStorage.getItem("token"),
+      },
+    });
+    const json = await result.json();
+    if (result.status === 401) {
+      throw new Error(json.message);
+    }
+    if (result.status === 403) {
+      throw new Error(json.message);
+    }
+    return json;
+  };
+
+  this.createTask = async function (
+    title,
+    description,
+    projectId,
+    assignedTo,
+    priority,
+    status
+  ) {
+    const result = await fetch(this._baseurl + "/api/task", {
+      method: "post",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: "Bearer " + localStorage.getItem("token"),
+      },
+      body: JSON.stringify({
+        title,
+        description,
+        projectId,
+        assignedTo,
+        priority,
+        status,
+      }),
+    });
+    const json = await result.json();
+    if (result.status === 401) {
+      throw new Error(json.message);
+    }
+    if (result.status === 403) {
+      throw new Error(json.message);
+    }
+    return json;
+  };
+
+  this.getTasks = async function (projectId) {
+    let url = this._baseurl + "/api/task";
+    if (projectId) {
+      url += `?projectId=${projectId}`;
+    }
+    const result = await fetch(url, {
+      method: "get",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: "Bearer " + localStorage.getItem("token"),
+      },
+    });
+    const json = await result.json();
+    if (result.status === 401) {
+      throw new Error(json.message);
+    }
+    if (result.status === 403) {
+      throw new Error(json.message);
+    }
+    return json;
+  };
+
+  this.updateTask = async function (taskId, data) {
+    const result = await fetch(this._baseurl + `/api/task/${taskId}`, {
+      method: "put",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: "Bearer " + localStorage.getItem("token"),
+      },
+      body: JSON.stringify(data),
+    });
+    const json = await result.json();
+    if (result.status === 401) {
+      throw new Error(json.message);
+    }
+    if (result.status === 403) {
+      throw new Error(json.message);
+    }
+    return json;
+  };
+
+  this.deleteTask = async function (taskId) {
+    const result = await fetch(this._baseurl + `/api/task/${taskId}`, {
+      method: "delete",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: "Bearer " + localStorage.getItem("token"),
+      },
+    });
+    const json = await result.json();
+    if (result.status === 401) {
+      throw new Error(json.message);
+    }
+    if (result.status === 403) {
+      throw new Error(json.message);
+    }
+    return json;
+  };
+
+  this.reassignTasks = async function () {
+    const result = await fetch(this._baseurl + "/api/task/reassign", {
+      method: "post",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: "Bearer " + localStorage.getItem("token"),
+      },
+    });
+    const json = await result.json();
+    if (result.status === 401) {
+      throw new Error(json.message);
+    }
+    if (result.status === 403) {
+      throw new Error(json.message);
+    }
+    return json;
+  };
+
   return this;
 }

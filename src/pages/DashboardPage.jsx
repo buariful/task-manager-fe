@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from "react";
 import ActivityLog from "../components/ActivityLog";
-import { MockDataService } from "../utils/MockDataService";
 
 import MkdSDK from "../utils/MkdSDK";
 
@@ -15,23 +14,30 @@ const DashboardPage = () => {
   const sdk = new MkdSDK();
 
   const fetchData = async () => {
-    const projects = MockDataService.getProjects();
-    const tasks = MockDataService.getTasks();
-    const logsData = MockDataService.getLogs();
-
-    setStats({
-      totalProjects: projects.length,
-      totalTasks: tasks.length,
-    });
-    setLogs(logsData);
-
     try {
-      const response = await sdk.getTeams();
-      if (!response.error) {
-        setTeams(response.data || []);
+      const projectsRes = await sdk.getProjects();
+      const tasksRes = await sdk.getTasks(); // Fetch all tasks (might need adjustment if getTasks requires projectId)
+      // Note: getTasks in backend currently filters by projectId if provided, otherwise returns all tasks created by user.
+      // So calling sdk.getTasks() without args should return all tasks.
+
+      const projects = projectsRes.success ? projectsRes.data : [];
+      const tasks = tasksRes.success ? tasksRes.data : [];
+
+      // Logs are not yet implemented in backend
+      const logsData = [];
+
+      setStats({
+        totalProjects: projects.length,
+        totalTasks: tasks.length,
+      });
+      setLogs(logsData);
+
+      const teamsRes = await sdk.getTeams();
+      if (teamsRes.success) {
+        setTeams(teamsRes.data || []);
       }
     } catch (error) {
-      console.error("Error fetching teams:", error);
+      console.error("Error fetching dashboard data:", error);
     }
   };
 
@@ -39,10 +45,17 @@ const DashboardPage = () => {
     fetchData();
   }, []);
 
-  const handleReassign = () => {
-    const movedCount = MockDataService.reassignTasks();
-    setReassignResult(`Successfully reassigned ${movedCount} tasks.`);
-    fetchData();
+  const handleReassign = async () => {
+    try {
+      const result = await sdk.reassignTasks();
+      if (result.success) {
+        setReassignResult(result.message);
+        fetchData();
+      }
+    } catch (error) {
+      console.error("Error reassigning tasks:", error);
+      setReassignResult("Failed to reassign tasks.");
+    }
 
     // Clear message after 3 seconds
     setTimeout(() => setReassignResult(null), 3000);
