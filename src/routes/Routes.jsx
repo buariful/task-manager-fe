@@ -8,44 +8,22 @@ import PublicRoute from "./PublicRoutes";
 // import {PublicWrapper} from "Components/PublicWrapper";
 import { NotFoundPage } from "Pages/404";
 import { SnackBar } from "Components/SnackBar";
-import { SessionExpiredModal } from "Components/SessionExpiredModal";
 
 // generatePagesRoutes
 import { PublicWrapper } from "Components/PublicWrapper";
-import { AdminWrapper } from "Components/AdminWrapper";
-import { OfficialWrapper } from "Components/OfficialWrapper";
-import { CandidateWrapper } from "Components/CandidateWrapper";
 
-import {
-  HomePage,
-  UserMagicLoginPage,
-  MagicLoginVerifyPage,
-  CustomAdminForgotPage,
-  CustomAdminResetPage,
-  CustomAdminDashboardPage,
-  AdminAddUserTablePage,
-  AdminEditUserTablePage,
-  AdminViewUserTablePage,
-  CustomAdminProfilePage,
-  AdminSignUpPage,
-  AdminDashboardPage,
-  AdminUserListPage,
-  AddAdminUserPage,
-  AdministratorLoginPage,
-  AdministratorResetPasswordPage,
-} from "./LazyLoad";
+// import {
+//   HomePage,
+// } from "./LazyLoad";
 import { Spinner } from "Assets/svgs";
 import { SuspenseLoader } from "Components/SuspenseLoader";
 import { SuspensLoader } from "Components/SuspensLoader";
 import { AdministratorAllRoutes } from "./AdministratorRoutes";
-import AdministratorWrapper from "Components/AdministratorWrapper/AdministratorWrapper";
-import { UserAllRoutes } from "./UserRoutes";
-import { UserWrapper } from "Components/User";
-import { UserProvider } from "Context/Custom";
-import { ParentAllRoutes } from "./ParentRoutes";
-import ParentWrapper from "Components/ParentWrapper/ParentWrapper";
-import { SuperAdminAllRoutes } from "./SuperAdminRoutes";
-import { SuperAdminWrapper } from "Components/SuperAdminWrapper";
+import LoginPage from "../pages/LoginPage";
+import DashboardPage from "../pages/DashboardPage";
+import TeamManagementPage from "../pages/TeamManagementPage";
+import ProjectManagementPage from "../pages/ProjectManagementPage";
+import RegisterPage from "../pages/RegisterPage";
 
 export const DynamicWrapper = ({ isAuthenticated, role, children }) => {
   if (!isAuthenticated) {
@@ -71,46 +49,11 @@ export const DynamicWrapper = ({ isAuthenticated, role, children }) => {
 };
 
 export const NotFound = ({ isAuthenticated, role }) => {
-  if (!isAuthenticated) {
-    return (
-      // <PublicWrapper>
-      <NotFoundPage />
-      // </PublicWrapper>
-    );
-  }
-  if (isAuthenticated) {
-    if (role === "public") {
-      return (
-        <PublicWrapper>
-          <NotFoundPage />
-        </PublicWrapper>
-      );
-    }
-
-    if (role === "admin") {
-      return (
-        <AdminWrapper>
-          <NotFoundPage />
-        </AdminWrapper>
-      );
-    }
-
-    if (role === "official") {
-      return (
-        <OfficialWrapper>
-          <NotFoundPage />
-        </OfficialWrapper>
-      );
-    }
-
-    if (role === "candidate") {
-      return (
-        <CandidateWrapper>
-          <NotFoundPage />
-        </CandidateWrapper>
-      );
-    }
-  }
+  return (
+    // <PublicWrapper>
+    <NotFoundPage />
+    // </PublicWrapper>
+  );
 };
 
 export default () => {
@@ -171,35 +114,85 @@ export default () => {
       >
         <Routes>
           <Route
+            path="/login"
+            element={
+              <PublicRoute
+                path={"/"}
+                element={
+                  <SuspensLoader>
+                    <LoginPage />
+                  </SuspensLoader>
+                }
+              ></PublicRoute>
+            }
+          />
+          <Route
+            path="/signup"
+            element={
+              <PublicRoute
+                path={"/signup"}
+                element={
+                  <SuspensLoader>
+                    <RegisterPage />
+                  </SuspensLoader>
+                }
+              ></PublicRoute>
+            }
+          />
+          <Route
+            path="/register"
+            element={
+              <PublicRoute
+                path={"/"}
+                element={
+                  <SuspensLoader>
+                    <RegisterPage />
+                  </SuspensLoader>
+                }
+              ></PublicRoute>
+            }
+          />
+          <Route
+            path="/dashboard"
+            element={
+              // <PublicRoute path="/dashboard">
+              <DashboardPage />
+              // </PublicRoute>
+            }
+          />
+          <Route
+            path="/teams"
+            element={
+              // <PrivateRoute path="/teams">
+              <TeamManagementPage />
+              // </PrivateRoute>
+            }
+          />
+          <Route
+            path="/projects"
+            element={
+              // <PrivateRoute path="/projects">
+              <ProjectManagementPage />
+              // </PrivateRoute>
+            }
+          />
+
+          <Route
             path="/"
             element={
               <PublicRoute
                 path={"/"}
                 element={
                   <SuspensLoader>
-                    <HomePage />
+                    <p>Home</p>
                   </SuspensLoader>
                 }
               ></PublicRoute>
             }
           />
 
-          <Route
-            exact
-            path={`/reset-password`}
-            element={
-              <PublicRoute
-                path={`/reset-password`}
-                element={
-                  <SuspenseLoader>
-                    <AdministratorResetPasswordPage />
-                  </SuspenseLoader>
-                }
-              />
-            }
-          />
           {/* Administrator routes */}
-          {AdministratorAllRoutes?.publicRoutes?.map((route, i) => (
+          {/* {AdministratorAllRoutes?.publicRoutes?.map((route, i) => (
             <Route
               key={i}
               exact
@@ -233,123 +226,7 @@ export default () => {
                 />
               }
             />
-          ))}
-
-          {/* User routes */}
-          {UserAllRoutes?.publicRoutes?.map((route, i) => (
-            <Route
-              key={i}
-              exact
-              path={`/user/${route.route}`}
-              element={
-                <PublicRoute
-                  path={`/user/${route.route}`}
-                  element={
-                    <SuspenseLoader>
-                      <route.page />
-                    </SuspenseLoader>
-                  }
-                />
-              }
-            />
-          ))}
-
-          {UserAllRoutes?.privateRoutes?.map((route, i) => (
-            <Route
-              key={i}
-              exact
-              path={`/user/${route.route}`}
-              element={
-                <PrivateRoute
-                  access="user"
-                  path={`/user/${route.route}`}
-                  element={
-                    <UserProvider>
-                      <UserWrapper>
-                        <route.page />
-                      </UserWrapper>
-                    </UserProvider>
-                  }
-                />
-              }
-            />
-          ))}
-
-          {/* Parent routes */}
-          {ParentAllRoutes?.publicRoutes?.map((route, i) => (
-            <Route
-              key={i}
-              exact
-              path={`/parent/${route.route}`}
-              element={
-                <PublicRoute
-                  path={`/parent/${route.route}`}
-                  element={
-                    <SuspenseLoader>
-                      <route.page />
-                    </SuspenseLoader>
-                  }
-                />
-              }
-            />
-          ))}
-
-          {ParentAllRoutes?.privateRoutes?.map((route, i) => (
-            <Route
-              key={i}
-              exact
-              path={`/parent/${route.route}`}
-              element={
-                <PrivateRoute
-                  access="parent"
-                  path={`/parent/${route.route}`}
-                  element={
-                    <ParentWrapper>
-                      <route.page />
-                    </ParentWrapper>
-                  }
-                />
-              }
-            />
-          ))}
-
-          {/* Super Admin Routes */}
-          {SuperAdminAllRoutes?.publicRoutes?.map((route, i) => (
-            <Route
-              key={i}
-              exact
-              path={`/super-admin/${route.route}`}
-              element={
-                <PublicRoute
-                  path={`/super-admin/${route.route}`}
-                  element={
-                    <SuspenseLoader>
-                      <route.page />
-                    </SuspenseLoader>
-                  }
-                />
-              }
-            />
-          ))}
-
-          {SuperAdminAllRoutes?.privateRoutes?.map((route, i) => (
-            <Route
-              key={i}
-              exact
-              path={`/super-admin/${route.route}`}
-              element={
-                <PrivateRoute
-                  access="super-admin"
-                  path={`/super-admin/${route.route}`}
-                  element={
-                    <SuperAdminWrapper>
-                      <route.page />
-                    </SuperAdminWrapper>
-                  }
-                />
-              }
-            />
-          ))}
+          ))} */}
 
           <Route
             path={"*"}
@@ -366,7 +243,6 @@ export default () => {
           />
         </Routes>
       </Suspense>
-      <SessionExpiredModal />
       <SnackBar />
     </div>
   );
