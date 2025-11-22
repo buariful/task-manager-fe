@@ -24,8 +24,6 @@ const LoginPage = () => {
   const { dispatch, state } = React.useContext(AuthContext);
   const { dispatch: globalDispatch } = React.useContext(GlobalContext);
 
-  console.log(state);
-
   const [loading, setLoading] = React.useState(false);
 
   const navigate = useNavigate();
@@ -55,7 +53,7 @@ const LoginPage = () => {
             token: token,
           },
         });
-        // navigate("/dashboard");
+        navigate("/dashboard");
       } else {
         showToast(globalDispatch, result?.message, 4000, "error");
       }

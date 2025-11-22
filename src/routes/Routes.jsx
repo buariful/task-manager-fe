@@ -25,6 +25,17 @@ import TeamManagementPage from "../pages/TeamManagementPage";
 import ProjectManagementPage from "../pages/ProjectManagementPage";
 import RegisterPage from "../pages/RegisterPage";
 
+import Navbar from "../components/Navbar";
+
+const ProtectedLayout = ({ children }) => {
+  return (
+    <div className="min-h-screen bg-gray-50">
+      <Navbar />
+      <div className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">{children}</div>
+    </div>
+  );
+};
+
 export const DynamicWrapper = ({ isAuthenticated, role, children }) => {
   if (!isAuthenticated) {
     return <PublicWrapper>{children}</PublicWrapper>;
@@ -155,25 +166,25 @@ export default () => {
           <Route
             path="/dashboard"
             element={
-              // <PublicRoute path="/dashboard">
-              <DashboardPage />
-              // </PublicRoute>
+              <ProtectedLayout>
+                <DashboardPage />
+              </ProtectedLayout>
             }
           />
           <Route
             path="/teams"
             element={
-              // <PrivateRoute path="/teams">
-              <TeamManagementPage />
-              // </PrivateRoute>
+              <ProtectedLayout>
+                <TeamManagementPage />
+              </ProtectedLayout>
             }
           />
           <Route
             path="/projects"
             element={
-              // <PrivateRoute path="/projects">
-              <ProjectManagementPage />
-              // </PrivateRoute>
+              <ProtectedLayout>
+                <ProjectManagementPage />
+              </ProtectedLayout>
             }
           />
 

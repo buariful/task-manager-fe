@@ -6,7 +6,7 @@ const TeamCard = ({ team, onAddMember }) => {
       <div className="flex justify-between items-center mb-4">
         <h3 className="text-xl font-bold text-gray-800">{team.name}</h3>
         <button
-          onClick={() => onAddMember(team.id)}
+          onClick={() => onAddMember(team._id)}
           className="bg-green-500 hover:bg-green-600 text-white px-3 py-1 rounded text-sm"
         >
           + Add Member
@@ -16,9 +16,9 @@ const TeamCard = ({ team, onAddMember }) => {
         {team.members.length === 0 ? (
           <p className="text-gray-500 italic">No members yet.</p>
         ) : (
-          team.members.map((member) => (
+          team.members.map((member, index) => (
             <div
-              key={member.id}
+              key={member._id || index}
               className="flex justify-between items-center border-b pb-2 last:border-0"
             >
               <div>
@@ -28,12 +28,12 @@ const TeamCard = ({ team, onAddMember }) => {
               <div className="text-right">
                 <span
                   className={`text-sm font-bold ${
-                    member.currentTasks > member.capacity
+                    (member.currentTasks || 0) > member.capacity
                       ? "text-red-500"
                       : "text-gray-600"
                   }`}
                 >
-                  {member.currentTasks} / {member.capacity}
+                  {member.currentTasks || 0} / {member.capacity}
                 </span>
                 <p className="text-xs text-gray-400">Load</p>
               </div>

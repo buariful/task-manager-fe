@@ -28,8 +28,6 @@ const RegisterPage = () => {
 
   const [loading, setLoading] = React.useState(false);
 
-  console.log("state->", state);
-
   const navigate = useNavigate();
   const {
     register,
@@ -50,7 +48,6 @@ const RegisterPage = () => {
         data.first_name,
         data.last_name
       );
-      console.log(result);
 
       if (!result.success) {
         showToast(globalDispatch, result?.message, 4000, "error");

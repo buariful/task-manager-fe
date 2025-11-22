@@ -4,7 +4,7 @@ import { yupResolver } from "@hookform/resolvers/yup";
 import * as yup from "yup";
 import MkdInput from "../components/MkdInput/MkdInput";
 import TeamCard from "../components/TeamCard";
-import { MockDataService } from "../utils/MockDataService";
+import MkdSDK from "../utils/MkdSDK";
 
 const teamSchema = yup
   .object({
@@ -16,7 +16,7 @@ const memberSchema = yup
   .object({
     name: yup.string().required("Name is required"),
     role: yup.string().required("Role is required"),
-    capacity: yup.number().min(1).max(5).required("Capacity is required (1-5)"),
+    capacity: yup.number().min(0).max(5).required("Capacity is required (0-5)"),
   })
   .required();
 
@@ -24,8 +24,8 @@ const TeamManagementPage = () => {
   const [teams, setTeams] = useState([]);
   const [showAddTeam, setShowAddTeam] = useState(false);
   const [selectedTeamId, setSelectedTeamId] = useState(null);
+  const sdk = new MkdSDK();
 
-  // Team Form
   const {
     register: registerTeam,
     handleSubmit: handleSubmitTeam,
@@ -45,31 +45,45 @@ const TeamManagementPage = () => {
     resolver: yupResolver(memberSchema),
   });
 
-  const fetchTeams = () => {
-    setTeams([...MockDataService.getTeams()]);
+  const fetchTeams = async () => {
+    try {
+      const response = await sdk.getTeams();
+      if (!response.error) {
+        setTeams(response.data || []);
+      }
+    } catch (error) {
+      console.error("Error fetching teams:", error);
+    }
   };
 
   useEffect(() => {
     fetchTeams();
   }, []);
 
-  const onAddTeam = (data) => {
-    MockDataService.addTeam(data.name);
-    resetTeam();
-    setShowAddTeam(false);
-    fetchTeams();
+  const onAddTeam = async (data) => {
+    try {
+      await sdk.createTeam(data.name);
+      resetTeam();
+      setShowAddTeam(false);
+      fetchTeams();
+    } catch (error) {
+      console.error("Error creating team:", error);
+    }
   };
-
-  const onAddMember = (data) => {
-    MockDataService.addMemberToTeam(
-      selectedTeamId,
-      data.name,
-      data.role,
-      data.capacity
-    );
-    resetMember();
-    setSelectedTeamId(null);
-    fetchTeams();
+  const onAddMember = async (data) => {
+    try {
+      await sdk.addMemberToTeam(
+        selectedTeamId,
+        data.name,
+        data.role,
+        data.capacity
+      );
+      resetMember();
+      setSelectedTeamId(null);
+      fetchTeams();
+    } catch (error) {
+      console.error("Error adding member:", error);
+    }
   };
 
   return (
@@ -125,7 +139,7 @@ const TeamManagementPage = () => {
               />
               <MkdInput
                 name="capacity"
-                label="Capacity (1-5)"
+                label="Capacity (0-5)"
                 type="number"
                 register={registerMember}
                 errors={memberErrors}
@@ -154,7 +168,7 @@ const TeamManagementPage = () => {
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {teams.map((team) => (
           <TeamCard
-            key={team.id}
+            key={team._id}
             team={team}
             onAddMember={(id) => setSelectedTeamId(id)}
           />

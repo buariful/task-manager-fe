@@ -2,6 +2,8 @@ import React, { useState, useEffect } from "react";
 import ActivityLog from "../components/ActivityLog";
 import { MockDataService } from "../utils/MockDataService";
 
+import MkdSDK from "../utils/MkdSDK";
+
 const DashboardPage = () => {
   const [stats, setStats] = useState({
     totalProjects: 0,
@@ -10,19 +12,27 @@ const DashboardPage = () => {
   const [teams, setTeams] = useState([]);
   const [logs, setLogs] = useState([]);
   const [reassignResult, setReassignResult] = useState(null);
+  const sdk = new MkdSDK();
 
-  const fetchData = () => {
+  const fetchData = async () => {
     const projects = MockDataService.getProjects();
     const tasks = MockDataService.getTasks();
-    const teamsData = MockDataService.getTeams();
     const logsData = MockDataService.getLogs();
 
     setStats({
       totalProjects: projects.length,
       totalTasks: tasks.length,
     });
-    setTeams(teamsData);
     setLogs(logsData);
+
+    try {
+      const response = await sdk.getTeams();
+      if (!response.error) {
+        setTeams(response.data || []);
+      }
+    } catch (error) {
+      console.error("Error fetching teams:", error);
+    }
   };
 
   useEffect(() => {
@@ -81,14 +91,14 @@ const DashboardPage = () => {
           </h3>
           <div className="space-y-6">
             {teams.map((team) => (
-              <div key={team.id}>
+              <div key={team._id}>
                 <h4 className="font-bold text-gray-700 mb-2 border-b pb-1">
                   {team.name}
                 </h4>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {team.members.map((member) => (
+                  {team.members.map((member, index) => (
                     <div
-                      key={member.id}
+                      key={member._id || index}
                       className="flex justify-between items-center bg-gray-50 p-3 rounded"
                     >
                       <div>
@@ -102,13 +112,15 @@ const DashboardPage = () => {
                           <div className="w-24 bg-gray-200 rounded-full h-2.5">
                             <div
                               className={`h-2.5 rounded-full ${
-                                member.currentTasks > member.capacity
+                                (member.currentTasks || 0) > member.capacity
                                   ? "bg-red-600"
                                   : "bg-blue-600"
                               }`}
                               style={{
                                 width: `${Math.min(
-                                  (member.currentTasks / member.capacity) * 100,
+                                  ((member.currentTasks || 0) /
+                                    member.capacity) *
+                                    100,
                                   100
                                 )}%`,
                               }}
@@ -116,12 +128,12 @@ const DashboardPage = () => {
                           </div>
                           <span
                             className={`text-sm font-bold ${
-                              member.currentTasks > member.capacity
+                              (member.currentTasks || 0) > member.capacity
                                 ? "text-red-600"
                                 : "text-gray-600"
                             }`}
                           >
-                            {member.currentTasks}/{member.capacity}
+                            {member.currentTasks || 0}/{member.capacity}
                           </span>
                         </div>
                       </div>
